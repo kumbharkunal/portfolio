@@ -1,0 +1,87 @@
+name: Deploy Portfolio to VPS
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to VPS
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USERNAME: ${{ secrets.VPS_USERNAME }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+        run: |
+          ssh -p $VPS_PORT $VPS_USERNAME@$VPS_HOST << 'EOF'
+            # Navigate to project directory
+            cd /var/www/portfolio
+            
+            # Pull latest code
+            git pull origin main || git clone https://github.com/${{ github.repository }}.git .
+            
+            # Stop and remove old containers
+            docker-compose down
+            
+            # Remove old images to force rebuild
+            docker-compose build --no-cache
+            
+            # Start new containers
+            docker-compose up -d
+            
+            # Clean up unused Docker resources
+            docker system prune -f
+            
+            echo "✅ Deployment completed successfully!"
+          EOF
+
+      - name: Verify Deployment
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USERNAME: ${{ secrets.VPS_USERNAME }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+        run: |
+          ssh -p $VPS_PORT $VPS_USERNAME@$VPS_HOST << 'EOF'
+            # Check if container is running
+            if docker ps | grep -q portfolio-app; then
+              echo "✅ Container is running"
+            else
+              echo "❌ Container is not running"
+              exit 1
+            fi
+            
+            # Check nginx status inside container
+            if docker exec portfolio-app nginx -t; then
+              echo "✅ Nginx configuration is valid"
+            else
+              echo "❌ Nginx configuration has errors"
+              exit 1
+            fi
+            
+            # Show container logs (last 20 lines)
+            echo "📋 Recent container logs:"
+            docker logs --tail 20 portfolio-app
+          EOF
+
+      - name: Send Deployment Notification
+        if: always()
+        run: |
+          if [ ${{ job.status }} == 'success' ]; then
+            echo "🎉 Deployment successful! Your portfolio is live at https://kunalkumbhar.com"
+          else
+            echo "❌ Deployment failed. Check the logs above for details."
+          fi

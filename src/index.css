@@ -1,0 +1,270 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Self-hosted fonts for better performance */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+  src: url('/fonts/inter-var-latin.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Sora';
+  font-style: normal;
+  font-weight: 300 800;
+  font-display: swap;
+  src: url('/fonts/sora-var-latin.woff2') format('woff2');
+}
+
+@layer base {
+  * {
+    @apply box-border;
+    margin: 0;
+    padding: 0;
+  }
+
+  html {
+    scroll-behavior: auto;
+    @apply bg-light-bg dark:bg-dark-bg;
+    transition: background-color 500ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  :root {
+    --color-primary: #0BAF97;
+    --color-accent: #00B7FF;
+    --github-level-0: #ffffff;
+    --github-level-1: #9be9a8;
+    --github-level-2: #40c463;
+    --github-level-3: #30a14e;
+    --github-level-4: #216e39;
+  }
+
+  .dark {
+    --color-primary: #00E5C1;
+    --color-accent: #63E6FF;
+    --github-level-0: #151b23;
+    --github-level-1: #0e4429;
+    --github-level-2: #006d32;
+    --github-level-3: #26a641;
+    --github-level-4: #39d353;
+  }
+
+  body {
+    @apply bg-light-bg dark:bg-dark-bg text-light-text dark:text-dark-text;
+    @apply font-inter antialiased;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-light-surface dark:bg-dark-surface;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-light-primary dark:bg-dark-primary rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-light-accent dark:bg-dark-accent;
+  }
+
+  /* Prevent layout shift */
+  #root {
+    min-height: 100vh;
+  }
+
+  /* Hide cursor on all interactive elements */
+  a, button, input, textarea, select {
+    cursor: none !important;
+  }
+}
+
+@layer components {
+  .section-padding {
+    @apply px-6 md:px-12 lg:px-24 py-20 md:py-32;
+  }
+
+  .container-wide {
+    @apply max-w-7xl mx-auto;
+  }
+
+  .glass-card {
+    @apply bg-light-card dark:bg-dark-card backdrop-blur-sm;
+    @apply border border-light-card dark:border-dark-card;
+    @apply rounded-2xl;
+  }
+
+  .gradient-text {
+    @apply bg-gradient-to-r from-light-primary to-light-accent dark:from-dark-primary dark:to-dark-accent;
+    @apply bg-clip-text text-transparent;
+  }
+
+  .btn-primary {
+    @apply px-8 py-4 rounded-full font-bold tracking-wide;
+    @apply bg-gradient-to-r from-light-primary to-light-accent dark:from-dark-primary dark:to-dark-accent;
+    @apply text-white shadow-lg shadow-light-primary/25 dark:shadow-dark-primary/25;
+    @apply transition-all duration-300;
+    @apply hover:shadow-2xl hover:shadow-light-primary/40 dark:hover:shadow-dark-primary/40 hover:-translate-y-1;
+    @apply active:scale-95;
+    @apply flex items-center justify-center gap-2;
+  }
+
+  .btn-outline {
+    @apply px-8 py-4 rounded-full font-bold tracking-wide;
+    @apply border-2 border-light-primary dark:border-dark-primary;
+    @apply text-light-primary dark:text-dark-primary;
+    @apply transition-all duration-300;
+    @apply hover:bg-light-primary dark:hover:bg-dark-primary hover:text-white;
+    @apply hover:shadow-lg hover:shadow-light-primary/25 dark:hover:shadow-dark-primary/25 hover:-translate-y-1;
+    @apply active:scale-95;
+    @apply flex items-center justify-center gap-2;
+  }
+
+  .btn-glass {
+    @apply px-8 py-4 rounded-full font-bold tracking-wide;
+    @apply border-2 border-light-text/10 dark:border-dark-text/10;
+    @apply bg-light-surface/50 dark:bg-dark-surface/50 backdrop-blur-md;
+    @apply text-light-text dark:text-dark-text;
+    @apply transition-all duration-300;
+    @apply hover:bg-light-text hover:text-light-bg dark:hover:bg-dark-text dark:hover:text-dark-bg;
+    @apply hover:border-transparent;
+    @apply hover:shadow-lg hover:-translate-y-1;
+    @apply active:scale-95;
+    @apply flex items-center justify-center gap-2;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* Disable animations for reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  /* Hide cursor on mobile */
+  @media (max-width: 768px) {
+    .custom-cursor, .circle {
+      display: none !important;
+    }
+  }
+}
+
+/* Cursor Trail Styles */
+.circle {
+  height: 24px;
+  width: 24px;
+  /* Removed border-radius and background-color to show SVG arrow */
+  position: fixed;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 99999999;
+  transform-origin: center center;
+  transition: width 200ms;
+}
+
+/* Trail SVG Styles - Match Main Cursor */
+.circle path:first-child {
+  fill: #FFCC00;
+  stroke: #000000;
+  transition: fill 0.3s ease, stroke 0.3s ease;
+}
+
+.dark .circle path:first-child {
+  fill: #FFFFFF;
+  stroke: #333333;
+}
+
+.circle path:last-child {
+  stroke: #000000;
+  transition: stroke 0.3s ease;
+}
+
+.dark .circle path:last-child {
+  stroke: #333333;
+}
+
+.circle-hidden {
+  display: none;
+}
+
+.circle-thin {
+  /* Adjust scale or opacity for hover effect if needed, 
+     but for arrows, maybe just scale down slightly */
+  transform: scale(0.8);
+}
+
+@media screen and (max-width: 750px) {
+  .circle {
+    display: none;
+  }
+}
+
+/* Main Cursor SVG Styles */
+.custom-cursor-main path:first-child {
+  fill: #FFCC00;
+  stroke: #000000;
+  transition: fill 0.3s ease, stroke 0.3s ease;
+}
+
+.dark .custom-cursor-main path:first-child {
+  fill: #FFFFFF;
+  stroke: #333333;
+}
+
+.custom-cursor-main path:last-child {
+  stroke: #000000;
+  transition: stroke 0.3s ease;
+}
+
+.dark .custom-cursor-main path:last-child {
+  stroke: #333333;
+}
+
+/* Lenis smooth scroll */
+html.lenis {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-scrolling iframe {
+  pointer-events: none;
+}
+
+/* Global Smooth Theme Transition */
+/* Placed at the end to ensure it overrides other transition properties */
+/* Global Smooth Theme Transition */
+/* Optimized selector to prevent lag while maintaining smoothness */
+body, div, section, header, footer, nav, button, a, input, textarea, svg, path, span, p, h1, h2, h3, h4, h5, h6 {
+  transition-property: background-color, border-color, color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 500ms !important;
+}

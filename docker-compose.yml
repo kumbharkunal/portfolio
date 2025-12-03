@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  portfolio:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: portfolio-app
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    networks:
+      - portfolio-network
+    environment:
+      - NODE_ENV=production
+    labels:
+      - "com.portfolio.description=Kunal Kumbhar Portfolio Website"
+      - "com.portfolio.version=1.0"
+
+networks:
+  portfolio-network:
+    driver: bridge
