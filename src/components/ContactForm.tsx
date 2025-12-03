@@ -52,7 +52,7 @@ const ContactForm = () => {
                         <span className="gradient-text relative z-10">Get In Touch</span>
                     </h2>
                     <p className="text-light-subtle-text dark:text-dark-subtle-text text-lg md:text-xl max-w-2xl mx-auto font-medium">
-                        Let's build something amazing togetherrrrrss.
+                        Let's build something amazing togetherrrrrssS.
                     </p>
                 </motion.div>
 
