@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 // Extend HTMLElement to include x and y properties for the animation logic
 interface CircleElement extends HTMLElement {
@@ -7,7 +7,27 @@ interface CircleElement extends HTMLElement {
 }
 
 const CustomCursor = () => {
+    // Detect if device has touch capability (mobile/tablet)
+    const [isTouchDevice, setIsTouchDevice] = useState(false);
+
     useEffect(() => {
+        // Check if device supports touch OR is a small screen
+        const checkTouchDevice = () => {
+            const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+            const isSmallScreen = window.innerWidth < 1024; // Hide on tablets and below
+            setIsTouchDevice(hasTouch || isSmallScreen);
+        };
+
+        checkTouchDevice();
+        window.addEventListener('resize', checkTouchDevice);
+
+        return () => window.removeEventListener('resize', checkTouchDevice);
+    }, []);
+
+    useEffect(() => {
+        // Don't initialize cursor on touch devices
+        if (isTouchDevice) return;
+
         const coords = { x: 0, y: 0 };
         const circles = document.querySelectorAll<CircleElement>('.circle');
         const inputs = document.querySelectorAll('input');
@@ -96,7 +116,12 @@ const CustomCursor = () => {
                 el.removeEventListener('mouseout', handleMouseOut);
             });
         };
-    }, []);
+    }, [isTouchDevice]); // Re-run if touch device detection changes
+
+    // Don't render custom cursor on touch devices
+    if (isTouchDevice) {
+        return null;
+    }
 
     return (
         <>
