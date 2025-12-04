@@ -8,14 +8,24 @@ const SkillsMarquee = memo(() => {
         'HTML', 'CSS', 'JavaScript', 'TypeScript', 'React', 'Redux',
         'TailwindCSS', 'Bootstrap', 'MaterialUI', 'Vite', 'Jest',
         'NodeJS', 'ExpressJS', 'Redis', 'MongoDB', 'Supabase',
-        'Firebase', 'Docker', 'GitHub', 'Cloudflare', 'Nginx',
+        'Firebase', 'Docker', 'GitHub', 'Cloudflare', 'Nginx', 'Zod',
     ];
 
     const halfLength = Math.ceil(skills.length / 2);
     const row1 = skills.slice(0, halfLength);
     const row2 = skills.slice(halfLength);
 
+    // Custom local icons for skills not available on skillicons.dev
+    const customIcons: Record<string, string> = {
+        'Zod': '/logos/zod.svg',
+    };
+
     const getIconUrl = (skill: string) => {
+        // Check if skill has a custom local icon
+        if (customIcons[skill]) {
+            return customIcons[skill];
+        }
+        // Otherwise use skillicons.dev CDN
         return `https://skillicons.dev/icons?i=${skill.toLowerCase()}`;
     };
 
