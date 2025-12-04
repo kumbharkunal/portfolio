@@ -76,6 +76,16 @@
     @apply bg-light-accent dark:bg-dark-accent;
   }
 
+  /* Hide scrollbar for draggable marquee */
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
   /* Prevent layout shift */
   #root {
     min-height: 100vh;

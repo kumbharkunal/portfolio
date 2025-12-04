@@ -1,6 +1,5 @@
-import { memo } from 'react';
+import { memo, useRef, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import Marquee from 'react-fast-marquee';
 
 const SkillsMarquee = memo(() => {
     // Using skill icons from skillicons.dev CDN
@@ -48,51 +47,156 @@ const SkillsMarquee = memo(() => {
                 </motion.div>
 
                 <div className="space-y-8">
-                    {/* First Row - Left to Right */}
-                    <Marquee gradient={false} speed={50} pauseOnHover>
-                        {row1.map((skill) => (
-                            <div
-                                key={skill}
-                                className="mx-4 flex flex-col items-center gap-3 p-6 glass-card rounded-xl hover:scale-110 transition-transform duration-300 min-w-[120px]"
-                            >
-                                <img
-                                    src={getIconUrl(skill)}
-                                    alt={skill}
-                                    className="w-12 h-12 object-contain"
-                                    loading="lazy"
-                                />
-                                <span className="text-sm font-medium text-light-text dark:text-dark-text whitespace-nowrap">
-                                    {skill}
-                                </span>
-                            </div>
-                        ))}
-                    </Marquee>
+                    {/* First Row - Left to Right with drag */}
+                    <DraggableMarquee skills={row1} direction="left" getIconUrl={getIconUrl} />
 
-                    {/* Second Row - Right to Left */}
-                    <Marquee gradient={false} speed={50} direction="right" pauseOnHover>
-                        {row2.map((skill) => (
-                            <div
-                                key={skill}
-                                className="mx-4 flex flex-col items-center gap-3 p-6 glass-card rounded-xl hover:scale-110 transition-transform duration-300 min-w-[120px]"
-                            >
-                                <img
-                                    src={getIconUrl(skill)}
-                                    alt={skill}
-                                    className="w-12 h-12 object-contain"
-                                    loading="lazy"
-                                />
-                                <span className="text-sm font-medium text-light-text dark:text-dark-text whitespace-nowrap">
-                                    {skill}
-                                </span>
-                            </div>
-                        ))}
-                    </Marquee>
+                    {/* Second Row - Right to Left with drag */}
+                    <DraggableMarquee skills={row2} direction="right" getIconUrl={getIconUrl} />
                 </div>
             </div>
         </section>
     );
 });
 
+// Draggable Marquee Component
+interface DraggableMarqueeProps {
+    skills: string[];
+    direction: 'left' | 'right';
+    getIconUrl: (skill: string) => string;
+}
+
+const DraggableMarquee = memo<DraggableMarqueeProps>(({ skills, direction, getIconUrl }) => {
+    const scrollRef = useRef<HTMLDivElement>(null);
+    const [isDragging, setIsDragging] = useState(false);
+    const [startX, setStartX] = useState(0);
+    const [scrollLeft, setScrollLeft] = useState(0);
+    const animationRef = useRef<number | null>(null);
+
+    // Duplicate skills for infinite scroll effect
+    const duplicatedSkills = [...skills, ...skills, ...skills];
+
+    // Auto-scroll animation
+    useEffect(() => {
+        const scroll = scrollRef.current;
+        if (!scroll) return;
+
+        const animate = () => {
+            if (!isDragging) {
+                const speed = 0.3; // Reduced from 0.5 for smoother scrolling
+                const currentScroll = scroll.scrollLeft;
+                const maxScroll = scroll.scrollWidth / 3; // Since we have 3 copies
+
+                if (direction === 'left') {
+                    scroll.scrollLeft = currentScroll + speed;
+                    // Reset to middle copy when reaching the end
+                    if (currentScroll >= maxScroll * 2) {
+                        scroll.scrollLeft = maxScroll;
+                    }
+                } else {
+                    scroll.scrollLeft = currentScroll - speed;
+                    // Reset to middle copy when reaching the start
+                    if (currentScroll <= 0) {
+                        scroll.scrollLeft = maxScroll;
+                    }
+                }
+            }
+            animationRef.current = requestAnimationFrame(animate);
+        };
+
+        // Only set initial position if not already set
+        if (scroll.scrollLeft === 0) {
+            scroll.scrollLeft = scroll.scrollWidth / 3;
+        }
+        animationRef.current = requestAnimationFrame(animate);
+
+        return () => {
+            if (animationRef.current) {
+                cancelAnimationFrame(animationRef.current);
+            }
+        };
+    }, [isDragging, direction]);
+
+    // Mouse drag handlers
+    const handleMouseDown = (e: React.MouseEvent) => {
+        setIsDragging(true);
+        setStartX(e.pageX - (scrollRef.current?.offsetLeft || 0));
+        setScrollLeft(scrollRef.current?.scrollLeft || 0);
+    };
+
+    const handleMouseMove = (e: React.MouseEvent) => {
+        if (!isDragging || !scrollRef.current) return;
+        e.preventDefault();
+        const x = e.pageX - (scrollRef.current.offsetLeft || 0);
+        const walk = (x - startX) * 1; // Reduced from 2 for smoother scrolling
+        scrollRef.current.scrollLeft = scrollLeft - walk;
+    };
+
+    const handleMouseUp = () => {
+        setIsDragging(false);
+    };
+
+    const handleMouseLeave = () => {
+        if (isDragging) {
+            setIsDragging(false);
+        }
+    };
+
+    // Touch drag handlers
+    const handleTouchStart = (e: React.TouchEvent) => {
+        setIsDragging(true);
+        setStartX(e.touches[0].pageX - (scrollRef.current?.offsetLeft || 0));
+        setScrollLeft(scrollRef.current?.scrollLeft || 0);
+    };
+
+    const handleTouchMove = (e: React.TouchEvent) => {
+        if (!isDragging || !scrollRef.current) return;
+        const x = e.touches[0].pageX - (scrollRef.current.offsetLeft || 0);
+        const walk = (x - startX) * 1; // Reduced from 2 for smoother scrolling
+        scrollRef.current.scrollLeft = scrollLeft - walk;
+    };
+
+    const handleTouchEnd = () => {
+        setIsDragging(false);
+    };
+
+    return (
+        <div
+            ref={scrollRef}
+            className="flex overflow-x-auto scrollbar-hide select-none"
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseLeave}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            style={{
+                scrollbarWidth: 'none',
+                msOverflowStyle: 'none',
+            }}
+        >
+            {duplicatedSkills.map((skill, index) => (
+                <div
+                    key={`${skill}-${index}`}
+                    className="mx-4 flex flex-col items-center gap-3 p-6 glass-card rounded-xl hover:scale-110 transition-transform duration-300 min-w-[120px] flex-shrink-0"
+                >
+                    <img
+                        src={getIconUrl(skill)}
+                        alt={skill}
+                        className="w-12 h-12 object-contain pointer-events-none"
+                        loading="lazy"
+                        draggable="false"
+                    />
+                    <span className="text-sm font-medium text-light-text dark:text-dark-text whitespace-nowrap">
+                        {skill}
+                    </span>
+                </div>
+            ))}
+        </div>
+    );
+});
+
+DraggableMarquee.displayName = 'DraggableMarquee';
 SkillsMarquee.displayName = 'SkillsMarquee';
 
 export default SkillsMarquee;
