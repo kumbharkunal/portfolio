@@ -9,6 +9,17 @@
     content="Kunal Kumbhar - Full Stack Developer specializing in React, Node.js, and modern web technologies" />
   <title>Kunal Kumbhar | Full Stack Developer</title>
 
+  <!-- Instant theme application - runs BEFORE any rendering -->
+  <script>
+    (function () {
+      const theme = localStorage.getItem('theme') ||
+        (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      if (theme === 'dark') {
+        document.documentElement.classList.add('dark');
+      }
+    })();
+  </script>
+
   <!-- Preload critical resources -->
   <link rel="preload" href="/fonts/inter-var-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/fonts/sora-var-latin.woff2" as="font" type="font/woff2" crossorigin>

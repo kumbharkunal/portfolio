@@ -29,7 +29,6 @@
   html {
     scroll-behavior: auto;
     @apply bg-light-bg dark:bg-dark-bg;
-    transition: background-color 500ms cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   :root {
@@ -40,6 +39,7 @@
     --github-level-2: #40c463;
     --github-level-3: #30a14e;
     --github-level-4: #216e39;
+    color-scheme: light;
   }
 
   .dark {
@@ -50,6 +50,7 @@
     --github-level-2: #006d32;
     --github-level-3: #26a641;
     --github-level-4: #39d353;
+    color-scheme: dark;
   }
 
   body {

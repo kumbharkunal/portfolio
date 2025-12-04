@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, memo } from 'react';
 
 // Extend HTMLElement to include x and y properties for the animation logic
 interface CircleElement extends HTMLElement {
@@ -171,4 +171,5 @@ const CustomCursor = () => {
     );
 };
 
-export default CustomCursor;
+// Wrap in memo to prevent re-renders during theme changes
+export default memo(CustomCursor);
