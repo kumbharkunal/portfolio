@@ -1,19 +1,99 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef, memo } from 'react';
 import { motion } from 'framer-motion';
-import { GitHubCalendar } from 'react-github-calendar';
+import { ActivityCalendar } from 'react-activity-calendar';
+
+// Types for GitHub contribution data
+interface ContributionDay {
+    date: string;
+    count: number;
+    level: 0 | 1 | 2 | 3 | 4;
+}
+
+interface CachedData {
+    data: ContributionDay[];
+    fetchedAt: number;
+}
+
+// Cache for storing fetched data per year (persists across re-renders)
+const dataCache = new Map<number, CachedData>();
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+// API endpoint for GitHub contributions (same as react-github-calendar uses)
+const fetchContributions = async (username: string, year: number): Promise<ContributionDay[]> => {
+    const response = await fetch(
+        `https://github-contributions-api.jogruber.de/v4/${username}?y=${year}`
+    );
+
+    if (!response.ok) {
+        throw new Error('Failed to fetch GitHub contributions');
+    }
+
+    const data = await response.json();
+    return data.contributions;
+};
+
+// Loading skeleton with shimmer wave animation
+const CalendarSkeleton = memo(() => (
+    <div className="relative overflow-hidden">
+        {/* Shimmer overlay - different colors for light/dark mode */}
+        <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-black/5 dark:via-white/10 to-transparent" />
+
+        <div className="flex flex-col gap-2">
+            {/* Month labels skeleton */}
+            <div className="flex gap-[40px] mb-2 ml-8">
+                {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map((_, i) => (
+                    <div key={i} className="w-8 h-3 rounded bg-gray-300 dark:bg-gray-700" />
+                ))}
+            </div>
+
+            {/* Calendar grid */}
+            <div className="flex gap-[3px]">
+                {/* Day labels */}
+                <div className="flex flex-col gap-[3px] mr-2 w-8">
+                    {['', 'Mon', '', 'Wed', '', 'Fri', ''].map((day, i) => (
+                        <div key={i} className="h-[12px] flex items-center justify-end pr-1">
+                            <span className="text-[10px] text-light-subtle-text/50 dark:text-dark-subtle-text/40">{day}</span>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Weeks grid */}
+                {Array.from({ length: 52 }).map((_, weekIndex) => (
+                    <div key={weekIndex} className="flex flex-col gap-[3px]">
+                        {Array.from({ length: 7 }).map((_, dayIndex) => (
+                            <div
+                                key={dayIndex}
+                                className="w-[12px] h-[12px] rounded-sm bg-gray-200 dark:bg-gray-700"
+                            />
+                        ))}
+                    </div>
+                ))}
+            </div>
+
+            {/* Legend skeleton */}
+            <div className="flex items-center justify-end gap-2 mt-4 opacity-60">
+                <span className="text-xs text-light-subtle-text dark:text-dark-subtle-text">Less</span>
+                {Array.from({ length: 5 }).map((_, i) => (
+                    <div key={i} className="w-[10px] h-[10px] rounded-sm bg-gray-200 dark:bg-gray-700" style={{ opacity: 0.3 + i * 0.15 }} />
+                ))}
+                <span className="text-xs text-light-subtle-text dark:text-dark-subtle-text">More</span>
+            </div>
+        </div>
+    </div>
+));
+
+CalendarSkeleton.displayName = 'CalendarSkeleton';
 
 const GitHubGraph = () => {
     const [selectedYear, setSelectedYear] = useState(2025);
+    const [contributions, setContributions] = useState<ContributionDay[] | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [isYearChanging, setIsYearChanging] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [retryCount, setRetryCount] = useState(0);
-    const [key, setKey] = useState(0); // Force re-render of GitHubCalendar
+    const mountedRef = useRef(true);
     const years = [2024, 2025];
-    const MAX_RETRIES = 3;
 
     // Custom theme using CSS variables for instant switching
-    const themeVars = [
+    const themeVars: [string, string, string, string, string] = [
         'var(--github-level-0)',
         'var(--github-level-1)',
         'var(--github-level-2)',
@@ -26,67 +106,76 @@ const GitHubGraph = () => {
         dark: themeVars,
     };
 
-    // Fetch data with retry logic
-    const fetchGitHubData = async (attempt = 1) => {
-        try {
-            setIsLoading(true);
-            setError(null);
-
-            // Test if GitHub API is accessible by making a simple fetch
-            const response = await fetch(`https://api.github.com/users/kumbharkunal`);
-
-            if (!response.ok) {
-                throw new Error('Failed to fetch GitHub data');
-            }
-
-            // If successful, mark as loaded
-            setIsLoading(false);
-            setRetryCount(0);
-        } catch (err) {
-            console.error(`Attempt ${attempt} failed:`, err);
-
-            if (attempt < MAX_RETRIES) {
-                // Retry after a delay (exponential backoff)
-                const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
-                console.log(`Retrying in ${delay}ms...`);
-
-                setTimeout(() => {
-                    setRetryCount(attempt);
-                    fetchGitHubData(attempt + 1);
-                }, delay);
-            } else {
-                // All retries failed
-                setError('Failed to load GitHub contributions. Please try again.');
+    // Fetch data with caching
+    const fetchData = useCallback(async (year: number, forceRefresh = false) => {
+        // Check cache first (unless forcing refresh)
+        if (!forceRefresh) {
+            const cached = dataCache.get(year);
+            if (cached && Date.now() - cached.fetchedAt < CACHE_DURATION) {
+                setContributions(cached.data);
                 setIsLoading(false);
-                setRetryCount(attempt);
+                setError(null);
+                return;
             }
         }
-    };
 
-    // Handle manual refresh
-    const handleRefresh = () => {
-        setKey(prev => prev + 1); // Force re-render
-        setRetryCount(0);
-        fetchGitHubData(1);
-    };
+        setIsLoading(true);
+        setError(null);
 
-    // Handle year change with loading state
-    const handleYearChange = (year: number) => {
-        if (year !== selectedYear) {
-            setIsYearChanging(true);
-            setSelectedYear(year);
+        try {
+            const data = await fetchContributions('kumbharkunal', year);
 
-            // Show loading for a brief moment while GitHubCalendar fetches new data
-            setTimeout(() => {
-                setIsYearChanging(false);
-            }, 800);
+            if (!mountedRef.current) return;
+
+            // Cache the data
+            dataCache.set(year, {
+                data,
+                fetchedAt: Date.now(),
+            });
+
+            setContributions(data);
+            setIsLoading(false);
+        } catch (err) {
+            if (!mountedRef.current) return;
+
+            console.error('Failed to fetch GitHub contributions:', err);
+            setError('Failed to load contribution data');
+            setIsLoading(false);
         }
-    };
-
-    // Initial data fetch
-    useEffect(() => {
-        fetchGitHubData(1);
     }, []);
+
+    // Handle year change - use cache if available
+    const handleYearChange = useCallback((year: number) => {
+        if (year === selectedYear) return;
+
+        setSelectedYear(year);
+
+        // Check if we have cached data for this year
+        const cached = dataCache.get(year);
+        if (cached && Date.now() - cached.fetchedAt < CACHE_DURATION) {
+            // Use cached data immediately - no loading state
+            setContributions(cached.data);
+            setError(null);
+        } else {
+            // Need to fetch - show loading
+            fetchData(year);
+        }
+    }, [selectedYear, fetchData]);
+
+    // Handle refresh button click
+    const handleRefresh = useCallback(() => {
+        fetchData(selectedYear, true);
+    }, [selectedYear, fetchData]);
+
+    // Initial fetch
+    useEffect(() => {
+        mountedRef.current = true;
+        fetchData(selectedYear);
+
+        return () => {
+            mountedRef.current = false;
+        };
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     return (
         <section className="section-padding">
@@ -111,12 +200,13 @@ const GitHubGraph = () => {
                             <motion.button
                                 key={year}
                                 onClick={() => handleYearChange(year)}
+                                disabled={isLoading}
                                 className={`px-6 py-2 rounded-full font-medium transition-all ${selectedYear === year
                                     ? 'bg-gradient-to-r from-light-primary to-light-accent dark:from-dark-primary dark:to-dark-accent text-white shadow-lg'
                                     : 'glass-card hover:bg-light-primary/10 dark:hover:bg-dark-primary/10'
-                                    }`}
-                                whileHover={{ scale: 1.05 }}
-                                whileTap={{ scale: 0.95 }}
+                                    } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                whileHover={!isLoading ? { scale: 1.05 } : {}}
+                                whileTap={!isLoading ? { scale: 0.95 } : {}}
                             >
                                 {year}
                             </motion.button>
@@ -131,52 +221,49 @@ const GitHubGraph = () => {
                     transition={{ duration: 0.4 }}
                     className="glass-card p-6 md:p-12 rounded-2xl"
                 >
-                    {/* Loading State */}
-                    {(isLoading || isYearChanging) && (
-                        <div className="flex flex-col items-center justify-center py-12 gap-4">
-                            <div className="w-12 h-12 border-4 border-light-primary/20 dark:border-dark-primary/20 border-t-light-primary dark:border-t-dark-primary rounded-full animate-spin" />
-                            <p className="text-light-subtle-text dark:text-dark-subtle-text">
-                                {retryCount > 0 ? `Retrying... (Attempt ${retryCount}/${MAX_RETRIES})` : 'Loading contributions...'}
-                            </p>
+                    {/* Loading State - Show skeleton */}
+                    {isLoading && (
+                        <div className="flex justify-center overflow-x-auto py-4">
+                            <CalendarSkeleton />
                         </div>
                     )}
 
-                    {/* Error State */}
+                    {/* Error State with Refresh Button */}
                     {error && !isLoading && (
-                        <div className="flex flex-col items-center justify-center py-12 gap-4">
-                            <svg className="w-16 h-16 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className="flex flex-col items-center justify-center py-12 gap-6">
+                            <svg className="w-16 h-16 text-red-500/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
-                            <p className="text-light-subtle-text dark:text-dark-subtle-text text-center max-w-md">
+                            <p className="text-light-subtle-text dark:text-dark-subtle-text text-center max-w-md text-lg">
                                 {error}
                             </p>
                             <motion.button
                                 onClick={handleRefresh}
-                                className="btn-primary flex items-center gap-2"
+                                className="btn-primary min-w-[200px] py-4 px-8 text-lg"
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
                             >
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                                 </svg>
-                                <span>Retry</span>
+                                <span>Try Again</span>
                             </motion.button>
                         </div>
                     )}
 
-                    {/* GitHub Calendar */}
-                    {!isLoading && !error && !isYearChanging && (
+                    {/* GitHub Calendar - Show only when data is loaded */}
+                    {!isLoading && !error && contributions && (
                         <div className="flex justify-center overflow-x-auto">
-                            <GitHubCalendar
-                                key={key}
-                                username="kumbharkunal"
-                                year={selectedYear}
+                            <ActivityCalendar
+                                data={contributions}
                                 blockSize={12}
                                 blockMargin={4}
                                 fontSize={14}
                                 theme={explicitTheme}
                                 colorScheme="light"
-                                errorMessage="Unable to load contribution data"
+                                labels={{
+                                    totalCount: `{{count}} contributions in ${selectedYear}`,
+                                }}
                             />
                         </div>
                     )}

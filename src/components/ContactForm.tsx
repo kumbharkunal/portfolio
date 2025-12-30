@@ -33,8 +33,8 @@ const ContactForm = () => {
         <section id="contact" className="section-padding relative overflow-hidden bg-light-surface dark:bg-dark-bg">
             {/* Background Decorative Blobs */}
             <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-                <div className="absolute top-1/4 -left-64 w-96 h-96 bg-light-primary/20 dark:bg-dark-primary/10 rounded-full blur-3xl animate-pulse" />
-                <div className="absolute bottom-1/4 -right-64 w-96 h-96 bg-light-accent/20 dark:bg-dark-accent/10 rounded-full blur-3xl animate-pulse delay-1000" />
+                <div className="absolute top-1/4 -left-64 w-96 h-96 bg-light-primary/20 dark:bg-dark-primary/10 rounded-full blur-3xl" />
+                <div className="absolute bottom-1/4 -right-64 w-96 h-96 bg-light-accent/20 dark:bg-dark-accent/10 rounded-full blur-3xl" />
             </div>
 
             <div className="container-wide relative z-10">

@@ -12,26 +12,29 @@ export const LenisProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     useEffect(() => {
         const newLenis = new Lenis({
-            duration: 1.2,
+            duration: 1.5,
             easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
             orientation: 'vertical',
             gestureOrientation: 'vertical',
             smoothWheel: true,
-            wheelMultiplier: 1,
-            touchMultiplier: 2,
+            wheelMultiplier: 0.8,
+            touchMultiplier: 1.5,
             infinite: false,
+            syncTouch: true,
         });
 
         setLenis(newLenis);
 
+        let rafId: number;
         function raf(time: number) {
             newLenis.raf(time);
-            requestAnimationFrame(raf);
+            rafId = requestAnimationFrame(raf);
         }
 
-        requestAnimationFrame(raf);
+        rafId = requestAnimationFrame(raf);
 
         return () => {
+            cancelAnimationFrame(rafId);
             newLenis.destroy();
             setLenis(null);
         };

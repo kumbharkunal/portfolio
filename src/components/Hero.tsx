@@ -1,9 +1,18 @@
 import { motion } from 'framer-motion';
 import { Typewriter } from 'react-simple-typewriter';
 import { useLenis } from '../context/LenisContext';
+import { useMemo } from 'react';
 
 const Hero = () => {
     const { lenis } = useLenis();
+
+    // Memoize random positions so they don't change on re-renders
+    const floatingShapePositions = useMemo(() =>
+        [...Array(5)].map(() => ({
+            left: `${Math.random() * 100}%`,
+            top: `${Math.random() * 100}%`,
+        })), []
+    );
 
     const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, target: string) => {
         e.preventDefault();
@@ -29,10 +38,7 @@ const Hero = () => {
                     <motion.div
                         key={i}
                         className="absolute w-32 h-32 md:w-48 md:h-48 rounded-full bg-gradient-to-br from-light-primary/10 to-light-accent/10 opacity-100 dark:opacity-0 blur-3xl transition-opacity duration-500"
-                        style={{
-                            left: `${Math.random() * 100}%`,
-                            top: `${Math.random() * 100}%`,
-                        }}
+                        style={floatingShapePositions[i]}
                         animate={{
                             y: [0, -30, 0],
                             x: [0, 20, 0],
@@ -186,11 +192,20 @@ const Hero = () => {
                         className="relative flex justify-center items-center"
                     >
                         <div className="relative w-64 h-64 md:w-80 md:h-80">
-                            {/* Glow effect */}
-                            <div className="absolute inset-0 bg-gradient-to-br from-light-primary to-light-accent dark:from-dark-primary dark:to-dark-accent rounded-full blur-3xl opacity-30 animate-glow" />
+                            {/* Outer rotating glow ring */}
+                            <div className="absolute -inset-4 rounded-full bg-gradient-to-r from-teal-500 via-cyan-400 to-emerald-500 opacity-40 blur-2xl animate-[spin_8s_linear_infinite]" />
+
+                            {/* Pulsing glow layers */}
+                            <div className="absolute -inset-2 rounded-full bg-gradient-to-br from-teal-400/60 to-cyan-500/60 blur-xl animate-[pulse_3s_ease-in-out_infinite]" />
+                            <div className="absolute -inset-1 rounded-full bg-gradient-to-tr from-emerald-400/40 to-teal-400/40 blur-lg animate-[pulse_4s_ease-in-out_infinite_0.5s]" />
+
+                            {/* Border gradient ring */}
+                            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-teal-400 via-cyan-400 to-emerald-500 p-1">
+                                <div className="w-full h-full rounded-full bg-light-bg dark:bg-dark-bg" />
+                            </div>
 
                             {/* Image container */}
-                            <div className="relative w-full h-full rounded-full overflow-hidden border-4 border-light-primary/20 dark:border-dark-primary/20 shadow-2xl">
+                            <div className="absolute inset-1 rounded-full overflow-hidden shadow-2xl">
                                 <img
                                     src="/profile.jpeg"
                                     alt="Kunal Kumbhar"

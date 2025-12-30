@@ -27,7 +27,7 @@ const PageLoader = ({ onLoadingComplete }: PageLoaderProps) => {
         const timer = setTimeout(() => {
             setIsLoading(false);
             setTimeout(onLoadingComplete, 800);
-        }, 2000);
+        }, 1500);
 
         return () => {
             clearInterval(interval);

@@ -33,9 +33,9 @@ const Certifications = () => {
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.6 }}
-                    className="mb-16 pl-8 md:pl-20"
+                    className="mb-16 pl-0 md:pl-20"
                 >
-                    <h2 className="text-4xl md:text-5xl font-sora font-bold mb-4 tracking-wider uppercase">
+                    <h2 className="text-3xl sm:text-4xl md:text-5xl font-sora font-bold mb-4 tracking-wider uppercase">
                         Certifications
                     </h2>
                 </motion.div>

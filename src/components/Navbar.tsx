@@ -46,7 +46,7 @@ const Navbar = () => {
             animate={{ y: 0 }}
             transition={{ duration: 0.5, ease: 'easeOut' }}
             className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled
-                ? 'bg-light-surface/80 dark:bg-dark-surface/80 backdrop-blur-lg shadow-lg'
+                ? 'bg-light-surface/40 dark:bg-dark-surface/40 backdrop-blur-xl shadow-lg md:bg-light-surface/80 md:dark:bg-dark-surface/80'
                 : 'bg-transparent'
                 }`}
         >
@@ -142,7 +142,7 @@ const Navbar = () => {
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: 'auto' }}
                         exit={{ opacity: 0, height: 0 }}
-                        className="md:hidden bg-light-surface/70 dark:bg-dark-surface/70 backdrop-blur-lg"
+                        className="md:hidden bg-light-surface/70 dark:bg-dark-surface/70 backdrop-blur-xl border-t border-light-primary/20 dark:border-dark-primary/20"
                     >
                         <div className="px-6 py-4 space-y-2">
                             {navLinks.map((link) => (
@@ -150,7 +150,7 @@ const Navbar = () => {
                                     key={link}
                                     href={`#${link.toLowerCase()}`}
                                     onClick={(e) => handleNavClick(e, `#${link.toLowerCase()}`)}
-                                    className="block text-light-text dark:text-dark-text hover:text-light-primary dark:hover:text-dark-primary transition-colors font-medium py-4 px-4 rounded-lg hover:bg-light-primary/5 dark:hover:bg-dark-primary/5"
+                                    className="block text-light-text dark:text-dark-text hover:text-light-primary dark:hover:text-dark-primary transition-colors font-medium py-4 px-4 rounded-lg hover:bg-light-primary/10 dark:hover:bg-dark-primary/10"
                                     whileHover={{ x: 5 }}
                                 >
                                     {link}

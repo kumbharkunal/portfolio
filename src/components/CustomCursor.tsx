@@ -60,19 +60,61 @@ const CustomCursor = () => {
             circle.y = 0;
         });
 
-        const handleMouseMove = (e: MouseEvent) => {
+        const mainCursor = document.querySelector('.custom-cursor-main') as HTMLElement;
+
+        // Helper to hide cursor
+        const hideCursor = () => {
+            circles.forEach((circle) => {
+                circle.classList.add('circle-hidden');
+            });
+            if (mainCursor) {
+                mainCursor.style.opacity = '0';
+            }
+        };
+
+        // Helper to show cursor
+        const showCursor = () => {
             circles.forEach((circle) => {
                 circle.classList.remove('circle-hidden');
             });
-            coords.x = e.clientX;
-            coords.y = e.clientY;
+            if (mainCursor) {
+                mainCursor.style.opacity = '1';
+            }
+            // Also restore default cursor
+            document.body.style.cursor = 'none';
+        };
+
+        const handleMouseMove = (e: MouseEvent) => {
+            // Check if mouse is at the very edge near scrollbar (within 5px of right edge)
+            const isNearScrollbar = e.clientX > window.innerWidth - 5;
+
+            if (isNearScrollbar) {
+                // Hide custom cursor and show default cursor near scrollbar
+                hideCursor();
+                document.body.style.cursor = 'auto';
+            } else {
+                showCursor();
+                document.body.style.cursor = 'none';
+                coords.x = e.clientX;
+                coords.y = e.clientY;
+            }
+        };
+
+        // Hide cursor when mouse leaves the window
+        const handleMouseLeave = () => {
+            hideCursor();
+        };
+
+        // Show cursor when mouse enters the window
+        const handleMouseEnter = () => {
+            showCursor();
         };
 
         window.addEventListener('mousemove', handleMouseMove);
+        document.addEventListener('mouseleave', handleMouseLeave);
+        document.addEventListener('mouseenter', handleMouseEnter);
 
         let rafId: number;
-
-        const mainCursor = document.querySelector('.custom-cursor-main') as HTMLElement;
 
         function animateCircles() {
             let x = coords.x;
@@ -110,6 +152,8 @@ const CustomCursor = () => {
 
         return () => {
             window.removeEventListener('mousemove', handleMouseMove);
+            document.removeEventListener('mouseleave', handleMouseLeave);
+            document.removeEventListener('mouseenter', handleMouseEnter);
             cancelAnimationFrame(rafId);
             fields.forEach((el) => {
                 el.removeEventListener('mouseover', handleMouseOver);
@@ -125,7 +169,7 @@ const CustomCursor = () => {
 
     return (
         <>
-            {Array.from({ length: 30 }).map((_, i) => (
+            {Array.from({ length: 15 }).map((_, i) => (
                 <div
                     key={i}
                     className="circle circle-hidden"
