@@ -93,7 +93,7 @@ const DraggableMarquee = memo<DraggableMarqueeProps>(({ skills, direction, getIc
 
         const animate = () => {
             if (!isDragging) {
-                const speed = 0.3;
+                const speed = 0.8; // Faster scroll speed for better visibility
                 const currentScroll = scroll.scrollLeft;
                 const maxScroll = scroll.scrollWidth / 3;
 
