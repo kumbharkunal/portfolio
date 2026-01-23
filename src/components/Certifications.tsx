@@ -8,7 +8,7 @@ const Certifications = () => {
         offset: ["start center", "end center"]
     });
 
-    const scaleY = useTransform(scrollYProgress, [0, 1], [0, 1]);
+
 
     const certifications = [
         {
