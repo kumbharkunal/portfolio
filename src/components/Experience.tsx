@@ -12,25 +12,42 @@ const Experience = () => {
 
     const experience = [
         {
+            role: 'Programmer Analyst',
+            company: 'Napps',
+            period: 'Nov 2025 – Present',
+            description: [
+                'Developing production-grade MERN stack applications with focus on scalability and performance optimization.',
+                'Architecting RESTful APIs, third-party API integrations, and optimizing MongoDB queries for efficiency.',
+                'Leading code reviews, mentoring intern developers, and ensuring best practices in full-stack development.',
+            ],
+        },
+        {
+            role: 'Programmer Analyst Trainee',
+            company: 'Napps',
+            period: 'Nov 2024 – Oct 2025',
+            description: [
+                'Built SilverFoil (silverfoil.napps.in) – live food delivery app with order tracking & payment integration.',
+                'Developed admin dashboard for restaurant management, menu CRUD operations, and order analytics.',
+                'Integrated responsive UI with Tailwind CSS and optimized performance for mobile devices.',
+            ],
+        },
+        {
             role: 'Full Stack Developer Intern',
             company: 'Napps',
-            period: 'May 2025 – Nov 2025',
+            period: 'Aug 2024 – Oct 2024',
             description: [
-                'Built responsive and accessible UI components with React, Tailwind CSS, and shadcn/ui',
-                'Integrated RESTful APIs and implemented efficient state management',
-                'Improved application performance and UI consistency across multiple features',
-                'Worked on backend development using Node.js and Express.js',
-                'Contributed to end-to-end development and production deployments',
+                'Built responsive web apps using React.js, Node.js, Express.js, MongoDB.',
+                'Assisted in API development, database schema design, and deployment.',
+                'Collaborated with senior developers to implement real-world features.',
             ],
         },
         {
             role: 'Web Developer Intern',
             company: 'Vocabulix',
-            period: 'March 2023 – April 2023',
+            period: 'Mar 2023 – Apr 2023',
             description: [
-                'Boosted customer engagement by 25% through dynamic frontend designs.',
-                'Executed user-friendly interface designs utilizing HTML, CSS, and JavaScript, leading to a 30% reduction in customer complaints and a 20% increase in user retention rates.',
-                'Executed usability tests on mobile app, resulting in a 20% increase in user engagement and a 15% rise in subscription renewals after UX enhancements.',
+                'Built dynamic, responsive web interfaces using HTML, CSS, and JavaScript, boosting customer engagement by 25%.',
+                'Enhanced UI/UX across client projects, reducing complaints by 30% and improving user retention by 20%.',
             ],
         },
     ];

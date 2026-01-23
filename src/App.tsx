@@ -4,6 +4,7 @@ import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import SkillsMarquee from './components/SkillsMarquee';
 import PageLoader from './components/PageLoader';
+import FloatingWhatsApp from './components/FloatingWhatsApp';
 
 // Lazy load heavy components for better performance
 const Projects = lazy(() => import('./components/Projects'));
@@ -62,6 +63,7 @@ function App() {
           <Suspense fallback={<ComponentSkeleton />}>
             <Footer />
           </Suspense>
+          <FloatingWhatsApp />
         </>
       )}
     </>

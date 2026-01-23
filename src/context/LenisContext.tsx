@@ -11,16 +11,23 @@ export const LenisProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const [lenis, setLenis] = useState<Lenis | null>(null);
 
     useEffect(() => {
+        // Check if device is touch-based (mobile/tablet)
+        const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+        const isSmallScreen = window.innerWidth < 1024;
+
+        // Skip Lenis on touch/mobile devices - use native scroll which is smoother
+        if (isTouchDevice || isSmallScreen) {
+            return;
+        }
+
         const newLenis = new Lenis({
-            duration: 1.5,
+            duration: 1.2,
             easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
             orientation: 'vertical',
             gestureOrientation: 'vertical',
             smoothWheel: true,
-            wheelMultiplier: 0.8,
-            touchMultiplier: 1.5,
+            wheelMultiplier: 1,
             infinite: false,
-            syncTouch: true,
         });
 
         setLenis(newLenis);

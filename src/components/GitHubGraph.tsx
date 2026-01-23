@@ -90,7 +90,7 @@ const GitHubGraph = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const mountedRef = useRef(true);
-    const years = [2024, 2025];
+    const years = [2024, 2025, 2026];
 
     // Custom theme using CSS variables for instant switching
     const themeVars: [string, string, string, string, string] = [
