@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+const WEB3FORMS_ACCESS_KEY = '842f4fd0-0c01-4f67-b4ce-6551dd884d38';
+
 const ContactForm = () => {
     const [formData, setFormData] = useState({
         name: '',
@@ -9,11 +11,48 @@ const ContactForm = () => {
     });
 
     const [isCopied, setIsCopied] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        // Handle form submission
-        console.log('Form submitted:', formData);
+        setIsSubmitting(true);
+        setSubmitStatus('idle');
+
+        try {
+            const response = await fetch('https://api.web3forms.com/submit', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({
+                    access_key: WEB3FORMS_ACCESS_KEY,
+                    name: formData.name,
+                    email: formData.email,
+                    message: formData.message,
+                    subject: `New Portfolio Contact: ${formData.name}`,
+                    from_name: 'Portfolio Contact Form',
+                }),
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                setSubmitStatus('success');
+                setFormData({ name: '', email: '', message: '' });
+                // Hide success message after 5 seconds
+                setTimeout(() => setSubmitStatus('idle'), 5000);
+            } else {
+                setSubmitStatus('error');
+                setTimeout(() => setSubmitStatus('idle'), 5000);
+            }
+        } catch {
+            setSubmitStatus('error');
+            setTimeout(() => setSubmitStatus('idle'), 5000);
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -70,7 +109,7 @@ const ContactForm = () => {
                                 Contact Details
                             </h3>
                             <p className="text-light-subtle-text dark:text-dark-subtle-text leading-relaxed">
-                                I'm currently available for freelance work and open to full-time opportunities.
+                                I am currently available and open to full-time opportunities.
                             </p>
                         </div>
 
@@ -196,7 +235,7 @@ const ContactForm = () => {
                             {/* Glow effect inside card */}
                             <div className="absolute top-0 right-0 w-64 h-64 bg-light-primary/5 dark:bg-dark-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
 
-                            <div className="grid md:grid-cols-2 gap-8">
+                            <div className="space-y-6 md:space-y-8">
                                 <div className="relative group">
                                     <input
                                         type="text"
@@ -255,17 +294,60 @@ const ContactForm = () => {
                                 </label>
                             </div>
 
-                            <div className="pt-4">
+                            <div className="pt-4 space-y-4">
+                                {/* Success/Error Messages */}
+                                <AnimatePresence>
+                                    {submitStatus === 'success' && (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: -10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: -10 }}
+                                            className="flex items-center gap-3 p-4 rounded-xl bg-green-500/10 border border-green-500/20"
+                                        >
+                                            <svg className="w-5 h-5 text-green-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                            </svg>
+                                            <p className="text-green-500 font-medium text-sm">Message sent successfully! I'll get back to you soon.</p>
+                                        </motion.div>
+                                    )}
+                                    {submitStatus === 'error' && (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: -10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: -10 }}
+                                            className="flex items-center gap-3 p-4 rounded-xl bg-red-500/10 border border-red-500/20"
+                                        >
+                                            <svg className="w-5 h-5 text-red-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                            <p className="text-red-500 font-medium text-sm">Something went wrong. Please try again.</p>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+
                                 <motion.button
                                     type="submit"
-                                    className="btn-primary w-full flex items-center justify-center gap-3 group"
-                                    whileHover={{ scale: 1.02 }}
-                                    whileTap={{ scale: 0.98 }}
+                                    disabled={isSubmitting}
+                                    className="btn-primary w-full flex items-center justify-center gap-3 group disabled:opacity-70 disabled:cursor-not-allowed"
+                                    whileHover={!isSubmitting ? { scale: 1.02 } : {}}
+                                    whileTap={!isSubmitting ? { scale: 0.98 } : {}}
                                 >
-                                    <span>Send Message</span>
-                                    <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                                    </svg>
+                                    {isSubmitting ? (
+                                        <>
+                                            <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                            </svg>
+                                            <span>Sending...</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <span>Send Message</span>
+                                            <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                            </svg>
+                                        </>
+                                    )}
                                 </motion.button>
                             </div>
                         </form>
