@@ -19,7 +19,18 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+          # Retry ssh-keyscan up to 3 times with timeout
+          for i in 1 2 3; do
+            if ssh-keyscan -T 30 -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts 2>/dev/null; then
+              echo "ssh-keyscan succeeded"
+              break
+            fi
+            echo "ssh-keyscan attempt $i failed, retrying in 5 seconds..."
+            sleep 5
+          done
+
+      - name: Wait for VPS to be ready
+        run: sleep 5
 
       - name: Deploy to VPS
         env:
@@ -27,15 +38,22 @@ jobs:
           VPS_USERNAME: ${{ secrets.VPS_USERNAME }}
           VPS_PORT: ${{ secrets.VPS_PORT }}
         run: |
-          ssh -p $VPS_PORT $VPS_USERNAME@$VPS_HOST << 'EOF'
+          ssh -o ConnectTimeout=30 -o ServerAliveInterval=15 -p $VPS_PORT $VPS_USERNAME@$VPS_HOST << 'EOF'
             # Navigate to project directory
             cd /var/www/portfolio
             
-            # Pull latest code
-            git pull origin main || git clone https://github.com/${{ github.repository }}.git .
+            # Pull latest code with retry
+            for i in 1 2 3; do
+              git pull origin main && break
+              echo "git pull attempt $i failed, retrying..."
+              sleep 3
+            done
             
             # Stop and remove old containers
             docker-compose down
+            
+            # Wait for containers to fully stop
+            sleep 5
             
             # Remove old images to force rebuild
             docker-compose build --no-cache
