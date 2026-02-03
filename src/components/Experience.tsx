@@ -26,7 +26,7 @@ const Experience = () => {
             company: 'Napps',
             period: 'Nov 2024 – Oct 2025',
             description: [
-                'Built SilverFoil (silverfoil.napps.in) – live food delivery app with order tracking & payment integration.',
+                'Developed SilverFoil (silverfoil.napps.in) – food delivery app with order tracking & payment integration.',
                 'Developed admin dashboard for restaurant management, menu CRUD operations, and order analytics.',
                 'Integrated responsive UI with Tailwind CSS and optimized performance for mobile devices.',
             ],

@@ -27,11 +27,11 @@ const ProjectCard = memo(({ title, description, tech, image, live, index }: Proj
                 glareEnable={false}
             >
                 <div className="glass-card p-6 h-full hover:shadow-2xl transition-shadow duration-300 flex flex-col">
-                    <div className="relative overflow-hidden rounded-xl mb-6 h-48 group shrink-0">
+                    <div className="relative overflow-hidden rounded-xl mb-6 group shrink-0">
                         <img
                             src={image}
                             alt={title}
-                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                            className="w-full h-full object-contain rounded-xl border border-white/20 transition-transform duration-500 group-hover:scale-110"
                             loading="lazy"
                             decoding="async"
                         />
