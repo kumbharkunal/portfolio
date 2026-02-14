@@ -9,11 +9,14 @@ interface ProjectCardProps {
     image: string;
     live?: string;
     index: number;
+    className?: string; // Add className prop
 }
 
-const ProjectCard = memo(({ title, description, tech, image, live, index }: ProjectCardProps) => {
+const ProjectCard = memo(({ title, description, tech, image, live, index, className = '' }: ProjectCardProps) => {
     return (
         <motion.div
+            layout // Add layout prop for smooth reordering/sizing
+            className={className} // Pass className to root element
             initial={{ opacity: 0, y: 50 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}

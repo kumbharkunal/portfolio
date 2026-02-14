@@ -19,6 +19,14 @@ const Projects = () => {
             image: '/zoomwheels-thumbnail.png',
             live: 'https://zoom-wheels.web.app',
         },
+        {
+            title: 'SilverFoil – Food Delivery App',
+            description:
+                'Built a live food delivery application with order tracking & payment integration. Developed admin dashboards for restaurant management, menu CRUD operations, and order analytics. Implemented responsive UI using Tailwind CSS and optimized performance for mobile devices.',
+            tech: ['React', 'Node.js', 'Express.js', 'MongoDB', 'Tailwind CSS'],
+            image: '/silverfoil-thumbnail.png',
+            live: 'https://silverfoil.napps.in',
+        },
     ];
 
 
@@ -42,7 +50,12 @@ const Projects = () => {
 
                 <div className="grid md:grid-cols-2 gap-8">
                     {projects.map((project, index) => (
-                        <ProjectCard key={project.title} {...project} index={index} />
+                        <ProjectCard
+                            key={project.title}
+                            {...project}
+                            index={index}
+                            className={index === 2 ? "md:col-span-2 md:mx-auto md:w-full md:max-w-xl" : ""}
+                        />
                     ))}
                 </div>
             </div>
