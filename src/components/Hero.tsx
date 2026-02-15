@@ -139,7 +139,7 @@ const Hero = () => {
                                 </svg>
                             </motion.a>
                             <motion.a
-                                href="../../Kunal_Kumbhar_Full_Stack_Developer.pdf"
+                                href="/resume.pdf"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="btn-glass"
