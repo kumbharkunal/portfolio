@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../hooks/useTheme';
 import { useLenis } from '../context/LenisContext';
@@ -27,14 +27,37 @@ const Navbar = () => {
         return () => window.removeEventListener('theme-changed', handleThemeChange);
     }, [getTheme]);
 
-    const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, target: string) => {
-        e.preventDefault();
-        setIsMobileMenuOpen(false);
+    // Lock body scroll when mobile menu is open
+    useEffect(() => {
+        if (isMobileMenuOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, [isMobileMenuOpen]);
+
+    const scrollToTarget = useCallback((target: string) => {
         if (lenis) {
             lenis.scrollTo(target);
         } else {
             const element = document.querySelector(target);
             element?.scrollIntoView({ behavior: 'smooth' });
+        }
+    }, [lenis]);
+
+    const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, target: string) => {
+        e.preventDefault();
+        if (isMobileMenuOpen) {
+            // Close menu first, then scroll after animation completes
+            setIsMobileMenuOpen(false);
+            setTimeout(() => {
+                scrollToTarget(target);
+            }, 50);
+        } else {
+            scrollToTarget(target);
         }
     };
 
@@ -138,26 +161,36 @@ const Navbar = () => {
             {/* Mobile Menu */}
             <AnimatePresence>
                 {isMobileMenuOpen && (
-                    <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        exit={{ opacity: 0, height: 0 }}
-                        className="md:hidden bg-light-surface/70 dark:bg-dark-surface/70 backdrop-blur-xl border-t border-light-primary/20 dark:border-dark-primary/20"
-                    >
-                        <div className="px-6 py-4 space-y-2">
-                            {navLinks.map((link) => (
-                                <motion.a
-                                    key={link}
-                                    href={`#${link.toLowerCase()}`}
-                                    onClick={(e) => handleNavClick(e, `#${link.toLowerCase()}`)}
-                                    className="block text-light-text dark:text-dark-text hover:text-light-primary dark:hover:text-dark-primary transition-colors font-medium py-4 px-4 rounded-lg hover:bg-light-primary/10 dark:hover:bg-dark-primary/10"
-                                    whileHover={{ x: 5 }}
-                                >
-                                    {link}
-                                </motion.a>
-                            ))}
-                        </div>
-                    </motion.div>
+                    <>
+                        {/* Backdrop overlay to dismiss menu */}
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="fixed inset-0 bg-black/20 backdrop-blur-sm md:hidden z-[-1]"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                        />
+                        <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                            transition={{ duration: 0.3, ease: 'easeInOut' }}
+                            className="md:hidden bg-light-surface/90 dark:bg-dark-surface/90 backdrop-blur-xl border-t border-light-primary/20 dark:border-dark-primary/20"
+                        >
+                            <div className="px-6 py-4 space-y-2">
+                                {navLinks.map((link) => (
+                                    <a
+                                        key={link}
+                                        href={`#${link.toLowerCase()}`}
+                                        onClick={(e) => handleNavClick(e, `#${link.toLowerCase()}`)}
+                                        className="block text-light-text dark:text-dark-text hover:text-light-primary dark:hover:text-dark-primary active:text-light-primary dark:active:text-dark-primary transition-colors font-medium py-4 px-4 rounded-lg hover:bg-light-primary/10 dark:hover:bg-dark-primary/10 active:bg-light-primary/10 dark:active:bg-dark-primary/10 cursor-pointer"
+                                    >
+                                        {link}
+                                    </a>
+                                ))}
+                            </div>
+                        </motion.div>
+                    </>
                 )}
             </AnimatePresence>
         </motion.nav>

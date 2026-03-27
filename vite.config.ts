@@ -27,5 +27,9 @@ export default defineConfig({
   // Optimize dependency pre-bundling
   optimizeDeps: {
     include: ['react', 'react-dom', 'framer-motion']
+  },
+  server: {
+    // Allow all external hosts (ngrok, etc.) for dev testing
+    allowedHosts: true
   }
 })
