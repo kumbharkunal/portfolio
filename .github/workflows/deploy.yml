@@ -39,27 +39,37 @@ jobs:
           VPS_PORT: ${{ secrets.VPS_PORT }}
         run: |
           ssh -o ConnectTimeout=30 -o ServerAliveInterval=15 -p $VPS_PORT $VPS_USERNAME@$VPS_HOST << 'EOF'
+            set -e
+            
             # Navigate to project directory
             cd /var/www/portfolio
             
             # Pull latest code with retry
+            PULL_SUCCESS=false
             for i in 1 2 3; do
-              git pull origin main && break
+              if git pull origin main; then
+                PULL_SUCCESS=true
+                break
+              fi
               echo "git pull attempt $i failed, retrying..."
               sleep 3
             done
+            if [ "$PULL_SUCCESS" = false ]; then
+              echo "❌ git pull failed after 3 attempts"
+              exit 1
+            fi
             
             # Stop and remove old containers
-            docker-compose down
+            docker compose down
             
             # Wait for containers to fully stop
             sleep 5
             
             # Remove old images to force rebuild
-            docker-compose build --no-cache
+            docker compose build --no-cache
             
             # Start new containers
-            docker-compose up -d
+            docker compose up -d
             
             # Clean up unused Docker resources
             docker system prune -f
@@ -73,7 +83,7 @@ jobs:
           VPS_USERNAME: ${{ secrets.VPS_USERNAME }}
           VPS_PORT: ${{ secrets.VPS_PORT }}
         run: |
-          ssh -p $VPS_PORT $VPS_USERNAME@$VPS_HOST << 'EOF'
+          ssh -o ConnectTimeout=30 -o ServerAliveInterval=15 -p $VPS_PORT $VPS_USERNAME@$VPS_HOST << 'EOF'
             # Check if container is running
             if docker ps | grep -q portfolio-app; then
               echo "✅ Container is running"
@@ -98,7 +108,7 @@ jobs:
       - name: Send Deployment Notification
         if: always()
         run: |
-          if [ ${{ job.status }} == 'success' ]; then
+          if [ "${{ job.status }}" == 'success' ]; then
             echo "🎉 Deployment successful! Your portfolio is live at https://kunalkumbhar.com"
           else
             echo "❌ Deployment failed. Check the logs above for details."
