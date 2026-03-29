@@ -214,7 +214,7 @@ Edit `src/index.css`:
 - **Contact:** `src/components/ContactForm.tsx`
 
 ### Theme
-Toggle between light/dark mode using the theme switcher in the navbar.
+Toggle between light/dark mode using the theme switcher in the navbar
 
 ---
 
