@@ -25,7 +25,7 @@ const Projects = () => {
                 'Built a live food delivery application with order tracking & payment integration. Developed admin dashboards for restaurant management, menu CRUD operations, and order analytics. Implemented responsive UI using Tailwind CSS and optimized performance for mobile devices.',
             tech: ['React', 'Node.js', 'Express.js', 'MongoDB', 'Tailwind CSS'],
             image: '/silverfoil-thumbnail.png',
-            live: 'https://silverfoil.napps.in',
+            live: 'https://silverfoil.online',
         },
     ];
 
